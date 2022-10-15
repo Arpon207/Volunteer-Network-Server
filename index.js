@@ -8,6 +8,7 @@ import AuthRoute from "./routes/auth.js";
 const app = express();
 const port = process.env.PORT || 5000;
 import { MongoClient, ServerApiVersion } from "mongodb";
+import { verifyToken } from "./utils/verifyToken.js";
 
 dotenv.config();
 app.use(cors());
@@ -36,10 +37,16 @@ const run = async () => {
       .collection("volunteer");
 
     // post events
-    app.post("/events", (req, res) => {
+    app.post("/events", verifyToken, async (req, res) => {
       const event = req.body;
-      const result = volunteerCollection.insertOne(event);
-      res.send(result);
+      const email = req.query.email;
+      const decodedEmail = req.decoded.email;
+      if (email === decodedEmail) {
+        const result = await volunteerCollection.insertOne(event);
+        res.send(result);
+      } else {
+        return res.status(403).send({ message: "forbidden access" });
+      }
     });
 
     //get events
