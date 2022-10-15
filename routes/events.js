@@ -15,7 +15,7 @@ router.get("/", async (req, res) => {
 });
 
 //post events
-router.post("/events", verifyToken, async (req, res) => {
+router.post("/", verifyToken, async (req, res) => {
   const event = req.body;
   const email = req.query.email;
   const decodedEmail = req.decoded.email;
