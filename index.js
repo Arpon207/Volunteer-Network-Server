@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import VolunteersRoute from "./routes/volunteers.js";
 import EventByIdRoute from "./routes/volunteerEvents.js";
+import eventRoute from "./routes/events.js";
 import AuthRoute from "./routes/auth.js";
 
 const app = express();
@@ -29,40 +30,22 @@ export const eventCollection = client
   .db("Volunteer-Network")
   .collection("events");
 
+export const volunteerCollection = client
+  .db("Volunteer-Network")
+  .collection("volunteer");
+
 const run = async () => {
   try {
     await client.connect();
-    const volunteerCollection = client
-      .db("Volunteer-Network")
-      .collection("volunteer");
 
-    // post events
-    app.post("/events", verifyToken, async (req, res) => {
-      const event = req.body;
-      const email = req.query.email;
-      const decodedEmail = req.decoded.email;
-      if (email === decodedEmail) {
-        const result = await volunteerCollection.insertOne(event);
-        res.send(result);
-      } else {
-        return res.status(403).send({ message: "forbidden access" });
-      }
-    });
+    //events
+    app.use("/events", eventRoute);
 
-    //get events
-    app.get("/events", async (req, res) => {
-      const query = {};
-      const cursor = volunteerCollection.find(query);
-      const volunteers = await cursor.toArray();
-      res.send(volunteers);
-    });
-
-    // get volunteers
-
+    //volunteers
     app.use("/volunteers", VolunteersRoute);
-
     app.use("/volunteerEvents", EventByIdRoute);
 
+    //auth
     app.use("/auth", AuthRoute);
   } finally {
   }
